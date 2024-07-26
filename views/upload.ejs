@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Excel File</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.0/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #6ee7b7, #3b82f6);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        .btn-upload {
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-upload:hover {
+            background-color: #2563eb;
+        }
+        .form-group label {
+            color: #1f2937;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-control-file {
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="container w-full max-w-md">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Upload Excel File</h1>
+        <form action="/filter" method="post" enctype="multipart/form-data" class="space-y-6">
+            <div class="form-group">
+                <label for="file" class="block">Choose Excel File</label>
+                <input type="file" class="form-control-file w-full" id="file" name="file" required>
+            </div>
+            <button type="submit" class="btn-upload w-full">Upload</button>
+        </form>
+    </div>
+</body>
+</html>

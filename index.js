@@ -5,6 +5,7 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 const port = 3000;
@@ -13,6 +14,48 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs'); // Set EJS as the view engine
+
+// Session configuration
+app.use(session({
+  secret: 'your_secret_key', // Replace with a secure key
+  resave: false,
+  saveUninitialized: true,
+}));
+
+
+// Middleware to check if the user is logged in
+function checkAuthenticated(req, res, next) {
+  if (req.session.user) {
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+}
+
+// Login route
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const user = result.rows[0];
+
+    if (user && user.password === password) {
+      // Store user information in session
+      req.session.user = user;
+      res.redirect('/');
+    } else {
+      res.render('login', { error: 'Invalid username or password' });
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 // PostgreSQL Pool setup
 const pool = new Pool({
@@ -50,8 +93,19 @@ const exportToExcel = (data) => {
 };
 
 // Route to render upload form
-app.get('/', (req, res) => {
+app.get('/', checkAuthenticated , (req, res) => {
   res.render('upload');
+});
+
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error during logout:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+    res.redirect('/login');
+  });
 });
 
 // Filtering route
@@ -85,13 +139,13 @@ app.post('/filter', upload.single('file'), async (req, res) => {
   console.log('Aggregated Filter Conditions:', filterConditions); // Debugging line
 
   // Initialize the query variables
-  let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public."Inhouse2" WHERE 1=1';
-  let queryCountUniqueCompanies = 'SELECT COUNT(DISTINCT "Company_Name") AS unique_companies FROM public."Inhouse2" WHERE 1=1';
-  let queryCountryWiseContacts = 'SELECT country, COUNT(*) AS total_contacts FROM public."Inhouse2" WHERE 1=1';
-  let queryCountryWiseUniqueCompanies = 'SELECT country, COUNT(DISTINCT "Company_Name") AS unique_companies FROM public."Inhouse2" WHERE 1=1';
+  let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
+  let queryCountUniqueCompanies = 'SELECT COUNT(DISTINCT Company_Name) AS unique_companies FROM public.inhouse_final WHERE 1=1';
+  let queryCountryWiseContacts = 'SELECT country, COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
+  let queryCountryWiseUniqueCompanies = 'SELECT country, COUNT(DISTINCT Company_Name) AS unique_companies FROM public.inhouse_final WHERE 1=1';
   
   // New query to select all rows
-  let querySelectAll = 'SELECT * FROM public."Inhouse2" WHERE 1=1';
+  let querySelectAll = 'SELECT * FROM public.inhouse_final WHERE 1=1';
 
   const params = [];
   let paramIndex = 1;
@@ -130,20 +184,18 @@ app.post('/filter', upload.single('file'), async (req, res) => {
     }
   };
   
-  
-  
   // Add conditions
   addConditions('job_title', 'job_title', true);
-  addConditions('Company_Name', '"Company_Name"');
+  addConditions('Company_Name', 'Company_Name');
   addConditions('domain', 'domain');
-  addConditions('Industry_Type', '"Industry_Type"', true);
+  addConditions('Industry_Type', 'Industry_Type', true);
   addConditions('Revenue_Size', 'Revenue_Size');
   addConditions('job_function', 'job_function');
   addConditions('job_level', 'job_level');
   addConditions('country', 'country');
   addConditions('state', 'state');
   addConditions('Sub_Industry', 'Sub_Industry', true);
-  addConditions('Employee_Size', '"Employee_Size"', true);
+  addConditions('Employee_Size', 'Employee_Size', true);
   
   // Group by country for these queries
   queryCountryWiseContacts += ' GROUP BY country';

@@ -77,8 +77,6 @@ const readFiltersFromExcel = (filePath) => {
   const worksheet = workbook.Sheets[sheetName];
   const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-  // logger.info('Excel Data:', jsonData); // Log the data
-
   return jsonData; // Returning all rows for processing multiple filters
 };
 
@@ -136,8 +134,6 @@ app.post('/filter', upload.single('file'), async (req, res) => {
       }
     }
   });
-
-  // logger.info('Aggregated Filter Conditions:', filterConditions); // Log filter conditions
 
   // Initialize the query variables
   let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
@@ -201,13 +197,6 @@ app.post('/filter', upload.single('file'), async (req, res) => {
   // Group by country for these queries
   queryCountryWiseContacts += ' GROUP BY country';
   queryCountryWiseUniqueCompanies += ' GROUP BY country';
-
-  // logger.info('Final Query Count Rows:', queryCountRows);
-  // logger.info('Final Query Count Unique Companies:', queryCountUniqueCompanies);
-  // logger.info('Final Query Country Wise Contacts:', queryCountryWiseContacts);
-  // logger.info('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
-  // logger.info('Final Query Select All:', querySelectAll); // Log the final queries
-  // logger.info('Parameters:', params);
 
   try {
     // Get total row count (overall)
@@ -278,7 +267,6 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
     }
   });
 
-  // logger.info('Aggregated Filter Conditions:', filterConditions); // Log filter conditions
 
   // Initialize the query variables
   let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
@@ -342,13 +330,6 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
   // Group by country for these queries
   queryCountryWiseContacts += ' GROUP BY country';
   queryCountryWiseUniqueCompanies += ' GROUP BY country';
-
-  // logger.info('Final Query Count Rows:', queryCountRows);
-  // logger.info('Final Query Count Unique Companies:', queryCountUniqueCompanies);
-  // logger.info('Final Query Country Wise Contacts:', queryCountryWiseContacts);
-  // logger.info('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
-  // logger.info('Final Query Select All:', querySelectAll); // Log the final queries
-  // logger.info('Parameters:', params);
 
   try {
     // Get total row count (overall)

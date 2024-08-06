@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Pool } = require('pg');
@@ -7,7 +6,6 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const session = require('express-session');
-const logger = require('./logger'); // Import the logger
 
 const app = express();
 const port = 5000;
@@ -23,6 +21,7 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
 }));
+
 
 // Middleware to check if the user is logged in
 function checkAuthenticated(req, res, next) {
@@ -53,7 +52,7 @@ app.post('/login', async (req, res) => {
       res.render('login', { error: 'Invalid username or password' });
     }
   } catch (error) {
-    logger.error('Error during login:', error); // Log the error
+    console.error('Error during login:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -77,7 +76,7 @@ const readFiltersFromExcel = (filePath) => {
   const worksheet = workbook.Sheets[sheetName];
   const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-  // logger.info('Excel Data:', jsonData); // Log the data
+  console.log('Excel Data:', jsonData); // Debugging line
 
   return jsonData; // Returning all rows for processing multiple filters
 };
@@ -94,7 +93,7 @@ const exportToExcel = (data) => {
 };
 
 // Route to render upload form
-app.get('/', checkAuthenticated, (req, res) => {
+app.get('/', checkAuthenticated , (req, res) => {
   res.render('upload');
 });
 
@@ -102,7 +101,7 @@ app.get('/', checkAuthenticated, (req, res) => {
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      logger.error('Error during logout:', err); // Log the error
+      console.error('Error during logout:', err);
       return res.status(500).send('Internal Server Error');
     }
     res.redirect('/login');
@@ -137,7 +136,7 @@ app.post('/filter', upload.single('file'), async (req, res) => {
     }
   });
 
-  // logger.info('Aggregated Filter Conditions:', filterConditions); // Log filter conditions
+  console.log('Aggregated Filter Conditions:', filterConditions); // Debugging line
 
   // Initialize the query variables
   let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
@@ -195,19 +194,19 @@ app.post('/filter', upload.single('file'), async (req, res) => {
   addConditions('job_level', 'job_level');
   addConditions('country', 'country');
   addConditions('state', 'state');
-  addConditions('Sub_Industry', 'Sub_Industry');
-  addConditions('Employee_Size', 'Employee_Size');
+  addConditions('Sub_Industry', 'Sub_Industry', true);
+  addConditions('Employee_Size', 'Employee_Size', true);
   
   // Group by country for these queries
   queryCountryWiseContacts += ' GROUP BY country';
   queryCountryWiseUniqueCompanies += ' GROUP BY country';
 
-  // logger.info('Final Query Count Rows:', queryCountRows);
-  // logger.info('Final Query Count Unique Companies:', queryCountUniqueCompanies);
-  // logger.info('Final Query Country Wise Contacts:', queryCountryWiseContacts);
-  // logger.info('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
-  // logger.info('Final Query Select All:', querySelectAll); // Log the final queries
-  // logger.info('Parameters:', params);
+  console.log('Final Query Count Rows:', queryCountRows);
+  console.log('Final Query Count Unique Companies:', queryCountUniqueCompanies);
+  console.log('Final Query Country Wise Contacts:', queryCountryWiseContacts);
+  console.log('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
+  console.log('Final Query Select All:', querySelectAll); // Debugging line
+  console.log('Parameters:', params);
 
   try {
     // Get total row count (overall)
@@ -238,11 +237,8 @@ app.post('/filter', upload.single('file'), async (req, res) => {
       uniqueCompaniesByCountry,
       excelFileUrl: '/download/excel' // URL for downloading the Excel file
     });
-
-    logger.info(`Username: ${req.session.user.username}, Request Time: ${new Date().toISOString()}, From Result: ${totalContacts}, Type: Fuzzy Match`);
-
   } catch (error) {
-    logger.error('Error executing query', error); // Log the error
+    console.error('Error executing query', error);
     res.status(500).send('Internal Server Error');
   } finally {
     // Clean up uploaded file
@@ -278,7 +274,7 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
     }
   });
 
-  // logger.info('Aggregated Filter Conditions:', filterConditions); // Log filter conditions
+  console.log('Aggregated Filter Conditions:', filterConditions); // Debugging line
 
   // Initialize the query variables
   let queryCountRows = 'SELECT COUNT(*) AS total_contacts FROM public.inhouse_final WHERE 1=1';
@@ -343,12 +339,12 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
   queryCountryWiseContacts += ' GROUP BY country';
   queryCountryWiseUniqueCompanies += ' GROUP BY country';
 
-  // logger.info('Final Query Count Rows:', queryCountRows);
-  // logger.info('Final Query Count Unique Companies:', queryCountUniqueCompanies);
-  // logger.info('Final Query Country Wise Contacts:', queryCountryWiseContacts);
-  // logger.info('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
-  // logger.info('Final Query Select All:', querySelectAll); // Log the final queries
-  // logger.info('Parameters:', params);
+  console.log('Final Query Count Rows:', queryCountRows);
+  console.log('Final Query Count Unique Companies:', queryCountUniqueCompanies);
+  console.log('Final Query Country Wise Contacts:', queryCountryWiseContacts);
+  console.log('Final Query Country Wise Unique Companies:', queryCountryWiseUniqueCompanies);
+  console.log('Final Query Select All:', querySelectAll); // Debugging line
+  console.log('Parameters:', params);
 
   try {
     // Get total row count (overall)
@@ -379,11 +375,8 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
       uniqueCompaniesByCountry,
       excelFileUrl: '/download/excel' // URL for downloading the Excel file
     });
-
-    logger.info(`Username: ${req.session.user.username}, Request Time: ${new Date().toISOString()}, From Result: ${totalContacts}, Type: Exact Match`);
-
   } catch (error) {
-    logger.error('Error executing query', error); // Log the error
+    console.error('Error executing query', error);
     res.status(500).send('Internal Server Error');
   } finally {
     // Clean up uploaded file
@@ -391,14 +384,6 @@ app.post('/exactfilter', upload.single('file'), async (req, res) => {
   }
 });
 
-app.post('/log-excel-download', (req, res) => {
-  if (req.body.downloaded) {
-      logger.info(`User ${req.session.user.username} downloaded the Excel file at ${new Date().toISOString()}`); // Log the download event
-      res.status(200).send('Logged successfully');
-  } else {
-      res.status(400).send('Download not logged');
-  }
-});
 
 // Route to handle Excel file download
 app.get('/download/excel', (req, res) => {
@@ -406,7 +391,7 @@ app.get('/download/excel', (req, res) => {
 
   res.download(filePath, 'exported_data.xlsx', (err) => {
     if (err) {
-      logger.error('Error downloading file:', err); // Log the error
+      console.error('Error downloading file:', err);
       res.status(500).send('Internal Server Error');
     } else {
       // Clean up file after download
@@ -416,5 +401,5 @@ app.get('/download/excel', (req, res) => {
 });
 
 app.listen(port, () => {
-  logger.info(`Server running on port ${port}`); // Log server start
+  console.log(`Server running on port ${port}`);
 });

@@ -106,10 +106,22 @@
         </div>
 
         <div class="mt-8 text-center">
-            <a href="<%= excelFileUrl %>" class="inline-block px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition duration-300">
+            <a href="<%= excelFileUrl %>" class="inline-block px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition duration-300 download-link">
                 Download Excel File
             </a>
         </div>
     </div>
+
+    <script>
+        document.querySelector('.download-link').addEventListener('click', function() {
+            fetch('/log-excel-download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ downloaded: true })
+            }).catch(error => console.error('Error logging download:', error));
+        });
+    </script>
 </body>
 </html>
